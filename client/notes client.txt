@@ -1,0 +1,50 @@
+
+doc React: https://react.dev/learn
+doc Vite: https://vite.dev/guide/
+doc axios: https://axios-http.com/docs/post_example or https://www.npmjs.com/package/axios
+doc sweetalert2: https://sweetalert2.github.io/#usage
+doc react-router: https://reactrouter.com/start/declarative/routing
+
+error.response.data.message
+
+
+=============================================
+
+Initialize: 
+
+npm init -y
+npm create vite@latest
+cd client
+npm install axios react react-router react-router-dom sweetalert2
+npm run dev
+
+===============================================
+
+Clean up:
+
+hapus semua css
+
+di App hanya ada function app
+
+===============================================
+
+Style:
+
+pake template di bootstrap
+
+pake css dari bootstrap
+
+pake transform.tools untuk mengubah dari html ke jsx
+
+card: container pt-5 d-flex gap-3 flex-wrap justify-content-center
+
+form: w-25 m-auto pt-5 p-3
+
+==================================================
+
+doc react-router: reactrouter.com/start/declarative/routing
+
+error.response.data.message
+
+
+==================================================
