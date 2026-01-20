@@ -2,6 +2,7 @@ const { verifyToken } = require("../helpers/jwt");
 
 const authenticate = async (req, res, next) => {
   try {
+    // Get token from Authorization header
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
