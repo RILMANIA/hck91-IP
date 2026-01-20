@@ -10,6 +10,7 @@ const { v4: uuidv4 } = require("uuid");
 
 module.exports = {
   async up(queryInterface, Sequelize) {
+    // Insert demo CV data
     await queryInterface.bulkInsert(
       "Cvs",
       [
