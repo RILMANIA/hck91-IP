@@ -1,0 +1,82 @@
+docs bcrypts: https://npmjs.com/package/bcryptjs
+docs sequelize: https://sequelize.org/docs/v6/
+docs jsonwebtoken: https://www.npmjs.com/package/jsonwebtoken
+docs express: https://www.npmjs.com/package/express
+docs express-router: https://expressjs.com/en/guide/routing.html
+
+======================================================
+
+Initialize:
+
+npm init -y
+npm i express sequelize pg bcrypt jsonwebtoken
+npm i -D nodemon sequelize-cli
+
+=========================================================
+
+Sequelize: 
+
+npx sequelize-cli init
+npx sequelize-cli db:create
+npx sequelize-cli db:create --env test
+
+!!! Jangan lupa config database !!!
+
+=======================================================
+
+Migration:
+
+npx sequelize-cli model:create --name --attributes
+
+!!! yang ada foreign key dibikin terakhir !!!
+
+==========================================================
+
+Seeding:
+
+npx sequelize-cli seed:create --name
+
+!!! bikin seeding untuk model yang tidak ada foreign key dulu !!!
+
+=============================================================
+
+App:
+
+!!! jangan lupa body-parser !!!
+
+==========================================================
+
+Di package.json:
+
+"dev": npx nodemon app
+"test": jest --detectOpenHandles --forceExit --verbose --runInBand
+
+===============================================================
+
+Connection Server-Frontend:
+
+!!! In server !!!
+
+npm i cors
+
+!!! In frontend !!!
+
+npm i axios
+
+=============================================
+
+Types of errors:
+
+"SequelizeValidationError":
+      
+"SequelizeUniqueConstraintError":
+      
+"BadRequest":
+      
+"Unauthorized":
+      
+"JsonWebTokenError":
+      
+"NotFound":
+      
+"Forbidden"
