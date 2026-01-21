@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node --watch app.js",
     "dev": "nodemon app.js",
-    "test": "jest --coverage",
+    "test": "jest --coverage --detectOpenHandles --forceExit --verbose --runInBand",
     "migrate": "sequelize-cli db:migrate",
     "migrate:undo": "sequelize-cli db:migrate:undo",
     "seed": "sequelize-cli db:seed:all",

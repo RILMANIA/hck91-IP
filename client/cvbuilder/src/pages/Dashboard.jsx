@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import Swal from "sweetalert2";
 import { cvApi } from "../helpers/http-client";
+import { fetchUserCVsAsync } from "../helpers/cvSlice";
 import CVCard from "../components/CVCard";
 
 /**
@@ -12,43 +14,33 @@ import CVCard from "../components/CVCard";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [cvs, setCvs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
 
-  const fetchCVs = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem("access_token");
+  // Get CVs from Redux store (single source of truth)
+  const { userCVs: cvs, loading, error } = useSelector((state) => state.cv);
 
-      if (!token) {
-        navigate("/login");
-        return;
-      }
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
 
-      const { data } = await cvApi.get(`/cvs`);
-
-      console.log(data, "<<< data fetchCVs Dashboard");
-      setCvs(data);
-    } catch (error) {
-      console.log(error.response, "<<< fetchCVs Dashboard");
-
-      if (error.response) {
-        Swal.fire({
-          icon: "error",
-          title: "Error!",
-          text: error.response.data.message,
-        });
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: "Error!",
-          text: "There was an error fetching your CVs",
-        });
-      }
-    } finally {
-      setLoading(false);
+    if (!token) {
+      navigate("/login");
+      return;
     }
-  };
+
+    // Fetch CVs using Redux action
+    dispatch(fetchUserCVsAsync());
+  }, [dispatch, navigate]);
+
+  useEffect(() => {
+    // Show error if fetch fails
+    if (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: error,
+      });
+    }
+  }, [error]);
 
   const handleDeleteCV = async (cvId) => {
     try {
@@ -76,7 +68,9 @@ export default function Dashboard() {
       await cvApi.delete(`/cvs/${cvId}`);
 
       Swal.fire("Deleted!", "Your CV has been deleted.", "success");
-      await fetchCVs();
+
+      // Refetch CVs using Redux action
+      dispatch(fetchUserCVsAsync());
     } catch (error) {
       console.log(error.response, "<<< deleteCV Dashboard");
 
@@ -95,10 +89,6 @@ export default function Dashboard() {
       }
     }
   };
-
-  useEffect(() => {
-    fetchCVs();
-  }, []);
 
   /**
    * WHAT: Signs out user and redirects to login

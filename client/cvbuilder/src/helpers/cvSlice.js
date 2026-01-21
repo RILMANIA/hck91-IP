@@ -54,7 +54,7 @@ export const fetchUserCVsAsync = createAsyncThunk(
 
       const response = await cvApi.get(`/cvs`);
 
-      return response.data.data;
+      return response.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || error.message || "Failed to fetch CVs",
