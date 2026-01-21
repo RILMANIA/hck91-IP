@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigate, useNavigate, Link } from "react-router-dom";
 import { cvApi } from "../helpers/http-client";
 import Swal from "sweetalert2";
@@ -64,6 +64,70 @@ export default function Login() {
     }
   }
 
+  async function handleGoogleLoginResponse(res) {
+    try {
+      const response = await cvApi.post(
+        "/auth/google",
+        {},
+        {
+          headers: {
+            token: res.credential,
+          },
+        },
+      );
+
+      const data = response.data;
+      localStorage.setItem("access_token", data.access_token);
+
+      await Swal.fire({
+        icon: "success",
+        title: "Success!",
+        text: "Login successful",
+        showConfirmButton: false,
+        timer: 1500,
+      });
+
+      navigate("/dashboard");
+    } catch (error) {
+      console.log(error);
+      Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: "Google login failed",
+      });
+    }
+  }
+
+  useEffect(() => {
+    // Load Google Sign-In script
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+
+    script.onload = () => {
+      window.google.accounts.id.initialize({
+        client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        callback: handleGoogleLoginResponse,
+      });
+
+      window.google.accounts.id.renderButton(
+        document.getElementById("google-signin-button"),
+        {
+          theme: "outline",
+          size: "large",
+          width: "100%",
+          text: "signin_with",
+        },
+      );
+    };
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
   if (localStorage.getItem("access_token")) {
     return <Navigate to="/dashboard" />;
   }
@@ -123,6 +187,14 @@ export default function Login() {
             {loading ? "Signing in..." : "Login"}
           </button>
         </form>
+
+        <div className="flex items-center my-6">
+          <div className="flex-1 border-t border-gray-300"></div>
+          <span className="px-4 text-gray-500 text-sm">OR</span>
+          <div className="flex-1 border-t border-gray-300"></div>
+        </div>
+
+        <div id="google-signin-button" className="w-full"></div>
 
         <div className="mt-6 text-center">
           <p className="text-gray-600">

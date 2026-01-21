@@ -36,6 +36,7 @@ app.get("/health", (req, res) => {
 
 app.post("/register", UserController.register);
 app.post("/login", UserController.loginUser);
+app.post("/auth/google", UserController.googleLogin);
 
 // Apply authentication middleware for routes below
 app.use(authentication);
