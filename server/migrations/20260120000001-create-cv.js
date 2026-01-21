@@ -5,14 +5,14 @@
  * INPUT: QueryInterface and Sequelize objects from migration runner
  * OUTPUT: Creates Cvs table with id, userId (FK), original_file_url, generated_cv, timestamps
  */
-
+/** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable("Cvs", {
       // Primary key - UUID for unique CV identification
       id: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
         primaryKey: true,
         allowNull: false,
       },

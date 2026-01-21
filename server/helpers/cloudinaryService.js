@@ -1,5 +1,8 @@
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
+
 const cloudinary = require("cloudinary").v2;
-require("dotenv").config();
 
 /**
  * WHAT: Configures Cloudinary SDK with credentials from environment variables
@@ -38,9 +41,14 @@ const uploadToCloudinary = async (file) => {
 
       // Write file buffer to upload stream
       uploadStream.end(file.buffer);
+      console.log("Uploading file to Cloudinary...");
     });
   } catch (error) {
-    throw new Error(`Cloudinary upload failed: ${error.message}`);
+    console.log(error, "<<< error in Cloudinary upload");
+    throw {
+      name: "BadRequest",
+      message: `Cloudinary upload failed: ${error.message}`,
+    };
   }
 };
 
