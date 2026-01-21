@@ -27,6 +27,8 @@ const uploadToCloudinary = async (file) => {
         {
           folder: "smart-cv-uploads",
           resource_type: "auto",
+          type: "upload",
+          access_mode: "public",
           public_id: `cv-${Date.now()}`,
           format: file.originalname.split(".").pop(),
         },

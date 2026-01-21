@@ -31,10 +31,9 @@ module.exports = {
 
     const cvs = [
       {
-        id: 1,
-        UserId: 1, // Demo user ID
+        userId: 1, // Demo user ID
         original_file_url: "https://res.cloudinary.com/demo/sample.pdf",
-        generated_cv: {
+        generated_cv: JSON.stringify({
           name: "John Doe",
           email: "john.doe@example.com",
           phone: "+1234567890",
@@ -54,7 +53,7 @@ module.exports = {
             },
           ],
           skills: ["JavaScript", "React", "Node.js", "PostgreSQL", "Git"],
-        },
+        }),
         createdAt: new Date(),
         updatedAt: new Date(),
       },
