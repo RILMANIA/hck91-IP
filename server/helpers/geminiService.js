@@ -1,5 +1,8 @@
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
+
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-require("dotenv").config();
 
 /**
  * WHAT: Initializes Google Gemini AI client with API key
@@ -23,7 +26,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
  */
 const generateCVFromText = async (rawText) => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
     const prompt = `
 You are an expert CV parser and formatter. Analyze the following raw text extracted from a document and create a structured professional CV in JSON format.

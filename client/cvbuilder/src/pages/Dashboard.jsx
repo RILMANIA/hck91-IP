@@ -1,33 +1,102 @@
 import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import Swal from "sweetalert2";
+import { cvApi } from "../helpers/http-client";
 import { fetchUserCVsAsync } from "../helpers/cvSlice";
-import { supabase } from "../helpers/supabaseClient";
-import "./Dashboard.css";
+import CVCard from "../components/CVCard";
 
 /**
  * WHAT: Dashboard page displaying user's CV history and navigation
- * INPUT: None (uses authenticated session from Redux)
- * OUTPUT: Renders list of user's CVs with options to view or create new
+ * INPUT: None (uses authenticated session)
+ * OUTPUT: Renders list of user's CVs with options to view, edit, or delete
  */
 
-function Dashboard() {
-  const dispatch = useDispatch();
+export default function Dashboard() {
   const navigate = useNavigate();
-  const { userCVs, loading, error } = useSelector((state) => state.cv);
+  const dispatch = useDispatch();
+
+  // Get CVs from Redux store (single source of truth)
+  const { userCVs: cvs, loading, error } = useSelector((state) => state.cv);
 
   useEffect(() => {
-    // Fetch user's CVs on component mount
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    // Fetch CVs using Redux action
     dispatch(fetchUserCVsAsync());
-  }, [dispatch]);
+  }, [dispatch, navigate]);
+
+  useEffect(() => {
+    // Show error if fetch fails
+    if (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error!",
+        text: error,
+      });
+    }
+  }, [error]);
+
+  const handleDeleteCV = async (cvId) => {
+    try {
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, delete it!",
+      });
+
+      if (!result.isConfirmed) {
+        return;
+      }
+
+      const token = localStorage.getItem("access_token");
+
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
+      await cvApi.delete(`/cvs/${cvId}`);
+
+      Swal.fire("Deleted!", "Your CV has been deleted.", "success");
+
+      // Refetch CVs using Redux action
+      dispatch(fetchUserCVsAsync());
+    } catch (error) {
+      console.log(error.response, "<<< deleteCV Dashboard");
+
+      if (error.response) {
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text: error.response.data.message,
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text: "There was an error deleting the CV",
+        });
+      }
+    }
+  };
 
   /**
    * WHAT: Signs out user and redirects to login
    * INPUT: None (button click)
    * OUTPUT: Clears session and navigates to login page
    */
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
+  const handleSignOut = () => {
+    localStorage.removeItem("access_token");
     navigate("/login");
   };
 
@@ -44,34 +113,55 @@ function Dashboard() {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="text-center">
+            <div
+              className="inline-block w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"
+              role="status"
+            >
+              <span className="sr-only">Loading...</span>
+            </div>
+            <p className="mt-3 text-gray-600">Loading your CVs...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="dashboard-container">
-      <header className="dashboard-header">
-        <h1>My CVs</h1>
-        <div className="header-actions">
+    <div className="min-h-screen bg-gray-50 p-8">
+      <header className="mb-8 flex justify-between items-center">
+        <h1 className="text-4xl font-bold text-gray-800">My CVs</h1>
+        <div className="flex gap-3">
           <button
-            className="btn btn-primary"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
             onClick={() => navigate("/upload-cv")}
           >
             + Create New CV
           </button>
-          <button className="btn btn-secondary" onClick={handleSignOut}>
+          <button
+            className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+            onClick={handleSignOut}
+          >
             Sign Out
           </button>
         </div>
       </header>
 
-      <div className="dashboard-content">
-        {loading && <div className="loading">Loading your CVs...</div>}
-
-        {error && <div className="error-message">{error}</div>}
-
-        {!loading && !error && userCVs.length === 0 && (
-          <div className="empty-state">
-            <h2>No CVs yet</h2>
-            <p>Create your first AI-generated CV by uploading a document</p>
+      <div className="">
+        {!loading && cvs.length === 0 && (
+          <div className="text-center py-16 bg-white rounded-lg shadow-md">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+              No CVs yet
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Create your first AI-generated CV by uploading a document
+            </p>
             <button
-              className="btn btn-primary"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
               onClick={() => navigate("/upload-cv")}
             >
               Upload Your First CV
@@ -79,58 +169,15 @@ function Dashboard() {
           </div>
         )}
 
-        {!loading && userCVs.length > 0 && (
-          <div className="cv-grid">
-            {userCVs.map((cv) => (
-              <div key={cv.id} className="cv-card">
-                <div className="cv-card-header">
-                  <h3>{cv.generated_cv?.name || "Untitled CV"}</h3>
-                  <span className="cv-date">{formatDate(cv.createdAt)}</span>
-                </div>
-                <div className="cv-card-body">
-                  <p>
-                    <strong>Email:</strong> {cv.generated_cv?.email || "N/A"}
-                  </p>
-                  <p>
-                    <strong>Phone:</strong> {cv.generated_cv?.phone || "N/A"}
-                  </p>
-                  {cv.generated_cv?.skills && (
-                    <div className="skills-preview">
-                      <strong>Skills:</strong>
-                      <div className="skill-tags">
-                        {cv.generated_cv.skills
-                          .slice(0, 3)
-                          .map((skill, idx) => (
-                            <span key={idx} className="skill-tag">
-                              {skill}
-                            </span>
-                          ))}
-                        {cv.generated_cv.skills.length > 3 && (
-                          <span className="skill-tag">
-                            +{cv.generated_cv.skills.length - 3}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="cv-card-footer">
-                  <a
-                    href={cv.original_file_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-link"
-                  >
-                    View Original
-                  </a>
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => navigate(`/upload-cv`, { state: { cv } })}
-                  >
-                    View Details
-                  </button>
-                </div>
-              </div>
+        {cvs.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {cvs.map((cv) => (
+              <CVCard
+                key={cv.id}
+                cv={cv}
+                handleDeleteCV={handleDeleteCV}
+                formatDate={formatDate}
+              />
             ))}
           </div>
         )}
@@ -138,5 +185,3 @@ function Dashboard() {
     </div>
   );
 }
-
-export default Dashboard;

@@ -1,8 +1,5 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
-import { supabase } from './supabaseClient';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { cvApi } from "./http-client";
 
 /**
  * WHAT: Async thunk to upload CV file to backend and process with AI
@@ -10,35 +7,34 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
  * OUTPUT: Promise resolving to { id, original_file_url, generated_cv } from backend
  */
 export const uploadCVAsync = createAsyncThunk(
-  'cv/uploadCV',
+  "cv/uploadCV",
   async (file, { rejectWithValue }) => {
     try {
-      // Get current session token from Supabase
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        throw new Error('User not authenticated');
+      // Get current session token from localStorage
+      const token = localStorage.getItem("access_token");
+
+      if (!token) {
+        throw new Error("User not authenticated");
       }
 
       // Create FormData for multipart upload
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append("file", file);
 
       // Send file to backend
-      const response = await axios.post(`${API_URL}/api/cvs/upload`, formData, {
+      const response = await cvApi.post(`/cvs/upload`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${session.access_token}`
-        }
+          "Content-Type": "multipart/form-data",
+        },
       });
 
-      return response.data.data;
+      return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to upload CV'
+        error.response?.data?.message || error.message || "Failed to upload CV",
       );
     }
-  }
+  },
 );
 
 /**
@@ -47,33 +43,29 @@ export const uploadCVAsync = createAsyncThunk(
  * OUTPUT: Promise resolving to array of CV records
  */
 export const fetchUserCVsAsync = createAsyncThunk(
-  'cv/fetchUserCVs',
+  "cv/fetchUserCVs",
   async (_, { rejectWithValue }) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        throw new Error('User not authenticated');
+      const token = localStorage.getItem("access_token");
+
+      if (!token) {
+        throw new Error("User not authenticated");
       }
 
-      const response = await axios.get(`${API_URL}/api/cvs`, {
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`
-        }
-      });
+      const response = await cvApi.get(`/cvs`);
 
-      return response.data.data;
+      return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || error.message || 'Failed to fetch CVs'
+        error.response?.data?.message || error.message || "Failed to fetch CVs",
       );
     }
-  }
+  },
 );
 
 /**
  * CV Slice - Manages CV upload and display state
- * 
+ *
  * State:
  * - uploadedFileUrl: URL of the uploaded file in Cloudinary (string | null)
  * - generatedCV: Structured CV data from Gemini AI (object | null)
@@ -82,13 +74,13 @@ export const fetchUserCVsAsync = createAsyncThunk(
  * - error: Error message if operation fails (string | null)
  */
 const cvSlice = createSlice({
-  name: 'cv',
+  name: "cv",
   initialState: {
     uploadedFileUrl: null,
     generatedCV: null,
     userCVs: [],
     loading: false,
-    error: null
+    error: null,
   },
   reducers: {
     /**
@@ -119,7 +111,7 @@ const cvSlice = createSlice({
      */
     clearError: (state) => {
       state.error = null;
-    }
+    },
   },
   extraReducers: (builder) => {
     // Upload CV reducers
@@ -154,7 +146,7 @@ const cvSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       });
-  }
+  },
 });
 
 export const { setGeneratedCV, clearCV, clearError } = cvSlice.actions;

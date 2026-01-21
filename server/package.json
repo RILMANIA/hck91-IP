@@ -4,9 +4,9 @@
   "description": "Smart CV Assistant - Backend API",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js",
+    "start": "node --watch app.js",
     "dev": "nodemon app.js",
-    "test": "jest --coverage",
+    "test": "jest --coverage --detectOpenHandles --forceExit --verbose --runInBand",
     "migrate": "sequelize-cli db:migrate",
     "migrate:undo": "sequelize-cli db:migrate:undo",
     "seed": "sequelize-cli db:seed:all",
@@ -28,13 +28,14 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "google-auth-library": "^10.5.0",
     "jsonwebtoken": "^9.0.3",
     "mammoth": "^1.9.1",
     "multer": "^1.4.5-lts.1",
     "pdf-parse": "^1.1.1",
     "pg": "^8.17.1",
     "sequelize": "^6.37.7",
-    "uuid": "^11.1.1"
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "jest": "^30.2.0",
