@@ -5,7 +5,7 @@ module.exports = (sequelize, DataTypes) => {
   class Cv extends Model {
     static associate(models) {
       // define association here
-      Cv.belongsTo(models.User, { foreignKey: "UserId" });
+      Cv.belongsTo(models.User, { foreignKey: "userId" });
     }
   }
 

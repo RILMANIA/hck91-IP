@@ -67,6 +67,12 @@ function App() {
           element={session ? <UploadCV /> : <Navigate to="/login" />}
         />
 
+        {/* View/Edit CV Page - View and edit existing CV */}
+        <Route
+          path="/cv/:id"
+          element={session ? <UploadCV /> : <Navigate to="/login" />}
+        />
+
         {/* Redirect root to dashboard if logged in, otherwise login */}
         <Route
           path="/"

@@ -1,25 +1,117 @@
-import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchUserCVsAsync } from "../helpers/cvSlice";
+import Swal from "sweetalert2";
+import { cvApi } from "../helpers/http-client";
 import { supabase } from "../helpers/supabaseClient";
 import "./Dashboard.css";
 
 /**
  * WHAT: Dashboard page displaying user's CV history and navigation
- * INPUT: None (uses authenticated session from Redux)
- * OUTPUT: Renders list of user's CVs with options to view or create new
+ * INPUT: None (uses authenticated session from Supabase)
+ * OUTPUT: Renders list of user's CVs with options to view, edit, or delete
  */
 
 function Dashboard() {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { userCVs, loading, error } = useSelector((state) => state.cv);
+  const [cvs, setCvs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchCVs = async () => {
+    try {
+      setLoading(true);
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        navigate("/login");
+        return;
+      }
+
+      const { data } = await cvApi.get(`/cvs`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      console.log(data, "<<< data fetchCVs Dashboard");
+      setCvs(data);
+    } catch (error) {
+      console.log(error.response, "<<< fetchCVs Dashboard");
+
+      if (error.response) {
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text: error.response.data.message,
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text: "There was an error fetching your CVs",
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteCV = async (cvId) => {
+    try {
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, delete it!",
+      });
+
+      if (!result.isConfirmed) {
+        return;
+      }
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        navigate("/login");
+        return;
+      }
+
+      await cvApi.delete(`/cvs/${cvId}`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      Swal.fire("Deleted!", "Your CV has been deleted.", "success");
+      await fetchCVs();
+    } catch (error) {
+      console.log(error.response, "<<< deleteCV Dashboard");
+
+      if (error.response) {
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text: error.response.data.message,
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text: "There was an error deleting the CV",
+        });
+      }
+    }
+  };
 
   useEffect(() => {
-    // Fetch user's CVs on component mount
-    dispatch(fetchUserCVsAsync());
-  }, [dispatch]);
+    fetchCVs();
+  }, []);
 
   /**
    * WHAT: Signs out user and redirects to login
@@ -44,6 +136,28 @@ function Dashboard() {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="dashboard-container">
+        <div
+          className="d-flex justify-content-center align-items-center"
+          style={{ minHeight: "400px" }}
+        >
+          <div className="text-center">
+            <div
+              className="spinner-border text-primary"
+              role="status"
+              style={{ width: "3rem", height: "3rem" }}
+            >
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <p className="mt-3 text-muted">Loading your CVs...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
@@ -62,11 +176,7 @@ function Dashboard() {
       </header>
 
       <div className="dashboard-content">
-        {loading && <div className="loading">Loading your CVs...</div>}
-
-        {error && <div className="error-message">{error}</div>}
-
-        {!loading && !error && userCVs.length === 0 && (
+        {!loading && cvs.length === 0 && (
           <div className="empty-state">
             <h2>No CVs yet</h2>
             <p>Create your first AI-generated CV by uploading a document</p>
@@ -79,9 +189,9 @@ function Dashboard() {
           </div>
         )}
 
-        {!loading && userCVs.length > 0 && (
+        {cvs.length > 0 && (
           <div className="cv-grid">
-            {userCVs.map((cv) => (
+            {cvs.map((cv) => (
               <div key={cv.id} className="cv-card">
                 <div className="cv-card-header">
                   <h3>{cv.generated_cv?.name || "Untitled CV"}</h3>
@@ -125,9 +235,15 @@ function Dashboard() {
                   </a>
                   <button
                     className="btn btn-primary"
-                    onClick={() => navigate(`/upload-cv`, { state: { cv } })}
+                    onClick={() => navigate(`/cv/${cv.id}`)}
                   >
                     View Details
+                  </button>
+                  <button
+                    className="btn btn-danger"
+                    onClick={() => handleDeleteCV(cv.id)}
+                  >
+                    Delete
                   </button>
                 </div>
               </div>
