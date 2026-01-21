@@ -4,7 +4,6 @@ import Swal from "sweetalert2";
 import { cvApi } from "../helpers/http-client";
 import { supabase } from "../helpers/supabaseClient";
 import UploadCVComponent from "../components/UploadCV";
-import "./UploadCV.css";
 
 /**
  * WHAT: Upload CV page where users can upload files and view/edit generated CVs
@@ -12,7 +11,7 @@ import "./UploadCV.css";
  * OUTPUT: Renders upload form or displays CV for editing
  */
 
-function UploadCV() {
+export default function UploadCV() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [cv, setCv] = useState(null);
@@ -123,20 +122,16 @@ function UploadCV() {
 
   if (loading) {
     return (
-      <div className="upload-cv-page">
-        <div
-          className="d-flex justify-content-center align-items-center"
-          style={{ minHeight: "400px" }}
-        >
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="flex justify-center items-center min-h-[400px]">
           <div className="text-center">
             <div
-              className="spinner-border text-primary"
+              className="inline-block w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"
               role="status"
-              style={{ width: "3rem", height: "3rem" }}
             >
-              <span className="visually-hidden">Loading...</span>
+              <span className="sr-only">Loading...</span>
             </div>
-            <p className="mt-3 text-muted">Loading CV...</p>
+            <p className="mt-3 text-gray-600">Loading CV...</p>
           </div>
         </div>
       </div>
@@ -144,15 +139,20 @@ function UploadCV() {
   }
 
   return (
-    <div className="upload-cv-page">
-      <header className="page-header">
-        <button className="btn btn-back" onClick={() => navigate("/dashboard")}>
+    <div className="min-h-screen bg-gray-50 p-8">
+      <header className="mb-8">
+        <button
+          className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors mb-4"
+          onClick={() => navigate("/dashboard")}
+        >
           ← Back to Dashboard
         </button>
-        <h1>{cv ? "View/Edit CV" : "Upload New CV"}</h1>
+        <h1 className="text-4xl font-bold text-gray-800">
+          {cv ? "View/Edit CV" : "Upload New CV"}
+        </h1>
       </header>
 
-      <div className="page-content">
+      <div className="max-w-5xl mx-auto">
         {cv ? (
           <CVDisplay
             cv={cv}
@@ -202,63 +202,83 @@ function CVDisplay({ cv, editMode, setEditMode, onUpdate }) {
   const generatedCV = editMode ? formData : cv.generated_cv;
 
   return (
-    <div className="cv-display">
-      <div className="cv-actions-top">
+    <div className="bg-white rounded-lg shadow-md p-8">
+      <div className="flex justify-end gap-3 mb-6">
         {!editMode ? (
-          <button className="btn btn-primary" onClick={() => setEditMode(true)}>
+          <button
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+            onClick={() => setEditMode(true)}
+          >
             Edit CV
           </button>
         ) : (
-          <div className="edit-actions">
-            <button className="btn btn-success" onClick={handleSave}>
+          <div className="flex gap-3">
+            <button
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+              onClick={handleSave}
+            >
               Save Changes
             </button>
-            <button className="btn btn-secondary" onClick={handleCancel}>
+            <button
+              className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+              onClick={handleCancel}
+            >
               Cancel
             </button>
           </div>
         )}
       </div>
 
-      <div className="cv-header">
+      <div className="mb-8 pb-6 border-b border-gray-200">
         {editMode ? (
           <>
             <input
               type="text"
               value={generatedCV.name || ""}
               onChange={(e) => handleInputChange("name", e.target.value)}
-              className="form-control mb-2"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Name"
             />
             <input
               type="email"
               value={generatedCV.email || ""}
               onChange={(e) => handleInputChange("email", e.target.value)}
-              className="form-control mb-2"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Email"
             />
             <input
               type="tel"
               value={generatedCV.phone || ""}
               onChange={(e) => handleInputChange("phone", e.target.value)}
-              className="form-control"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Phone"
             />
           </>
         ) : (
           <>
-            <h2>{generatedCV.name}</h2>
-            {generatedCV.email && <p>{generatedCV.email}</p>}
-            {generatedCV.phone && <p>{generatedCV.phone}</p>}
+            <h2 className="text-3xl font-bold text-gray-800 mb-2">
+              {generatedCV.name}
+            </h2>
+            {generatedCV.email && (
+              <p className="text-gray-600">{generatedCV.email}</p>
+            )}
+            {generatedCV.phone && (
+              <p className="text-gray-600">{generatedCV.phone}</p>
+            )}
           </>
         )}
       </div>
 
       {generatedCV.education && generatedCV.education.length > 0 && (
-        <div className="cv-section">
-          <h3>Education</h3>
+        <div className="mb-8">
+          <h3 className="text-2xl font-semibold text-gray-800 mb-4">
+            Education
+          </h3>
           {generatedCV.education.map((edu, idx) => (
-            <div key={idx} className="cv-item">
+            <div
+              key={idx}
+              className="mb-6 pb-4 border-b border-gray-100 last:border-0"
+            >
               {editMode ? (
                 <>
                   <input
@@ -270,7 +290,7 @@ function CVDisplay({ cv, editMode, setEditMode, onUpdate }) {
                         institution: e.target.value,
                       })
                     }
-                    className="form-control mb-2"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Institution"
                   />
                   <input
@@ -282,7 +302,7 @@ function CVDisplay({ cv, editMode, setEditMode, onUpdate }) {
                         degree: e.target.value,
                       })
                     }
-                    className="form-control mb-2"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Degree"
                   />
                   <input
@@ -294,15 +314,17 @@ function CVDisplay({ cv, editMode, setEditMode, onUpdate }) {
                         year: e.target.value,
                       })
                     }
-                    className="form-control"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Year"
                   />
                 </>
               ) : (
                 <>
-                  <h4>{edu.institution}</h4>
-                  <p>{edu.degree}</p>
-                  <span className="cv-year">{edu.year}</span>
+                  <h4 className="text-lg font-semibold text-gray-800">
+                    {edu.institution}
+                  </h4>
+                  <p className="text-gray-700">{edu.degree}</p>
+                  <span className="text-sm text-gray-500">{edu.year}</span>
                 </>
               )}
             </div>
@@ -311,10 +333,15 @@ function CVDisplay({ cv, editMode, setEditMode, onUpdate }) {
       )}
 
       {generatedCV.experience && generatedCV.experience.length > 0 && (
-        <div className="cv-section">
-          <h3>Experience</h3>
+        <div className="mb-8">
+          <h3 className="text-2xl font-semibold text-gray-800 mb-4">
+            Experience
+          </h3>
           {generatedCV.experience.map((exp, idx) => (
-            <div key={idx} className="cv-item">
+            <div
+              key={idx}
+              className="mb-6 pb-4 border-b border-gray-100 last:border-0"
+            >
               {editMode ? (
                 <>
                   <input
@@ -326,7 +353,7 @@ function CVDisplay({ cv, editMode, setEditMode, onUpdate }) {
                         position: e.target.value,
                       })
                     }
-                    className="form-control mb-2"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Position"
                   />
                   <input
@@ -338,7 +365,7 @@ function CVDisplay({ cv, editMode, setEditMode, onUpdate }) {
                         company: e.target.value,
                       })
                     }
-                    className="form-control mb-2"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Company"
                   />
                   <input
@@ -350,7 +377,7 @@ function CVDisplay({ cv, editMode, setEditMode, onUpdate }) {
                         duration: e.target.value,
                       })
                     }
-                    className="form-control mb-2"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Duration"
                   />
                   <textarea
@@ -361,18 +388,20 @@ function CVDisplay({ cv, editMode, setEditMode, onUpdate }) {
                         description: e.target.value,
                       })
                     }
-                    className="form-control"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Description"
                     rows="3"
                   />
                 </>
               ) : (
                 <>
-                  <h4>{exp.position}</h4>
-                  <p className="company">{exp.company}</p>
-                  <span className="cv-year">{exp.duration}</span>
+                  <h4 className="text-lg font-semibold text-gray-800">
+                    {exp.position}
+                  </h4>
+                  <p className="text-gray-700 font-medium">{exp.company}</p>
+                  <span className="text-sm text-gray-500">{exp.duration}</span>
                   {exp.description && (
-                    <p className="description">{exp.description}</p>
+                    <p className="text-gray-600 mt-2">{exp.description}</p>
                   )}
                 </>
               )}
@@ -382,8 +411,8 @@ function CVDisplay({ cv, editMode, setEditMode, onUpdate }) {
       )}
 
       {generatedCV.skills && generatedCV.skills.length > 0 && (
-        <div className="cv-section">
-          <h3>Skills</h3>
+        <div className="mb-8">
+          <h3 className="text-2xl font-semibold text-gray-800 mb-4">Skills</h3>
           {editMode ? (
             <textarea
               value={generatedCV.skills.join(", ")}
@@ -393,14 +422,17 @@ function CVDisplay({ cv, editMode, setEditMode, onUpdate }) {
                   e.target.value.split(",").map((s) => s.trim()),
                 )
               }
-              className="form-control"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Skills (comma separated)"
               rows="3"
             />
           ) : (
-            <div className="skills-list">
+            <div className="flex flex-wrap gap-2">
               {generatedCV.skills.map((skill, idx) => (
-                <span key={idx} className="skill-badge">
+                <span
+                  key={idx}
+                  className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
+                >
                   {skill}
                 </span>
               ))}
@@ -410,12 +442,12 @@ function CVDisplay({ cv, editMode, setEditMode, onUpdate }) {
       )}
 
       {!editMode && (
-        <div className="cv-actions">
+        <div className="pt-6 border-t border-gray-200">
           <a
             href={cv.original_file_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn btn-secondary"
+            className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium transition-colors inline-block"
           >
             Download Original File
           </a>
@@ -424,5 +456,3 @@ function CVDisplay({ cv, editMode, setEditMode, onUpdate }) {
     </div>
   );
 }
-
-export default UploadCV;

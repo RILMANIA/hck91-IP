@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { cvApi } from "../helpers/http-client";
 import { supabase } from "../helpers/supabaseClient";
-import "./Dashboard.css";
+import CVCard from "../components/CVCard";
 
 /**
  * WHAT: Dashboard page displaying user's CV history and navigation
@@ -11,7 +11,7 @@ import "./Dashboard.css";
  * OUTPUT: Renders list of user's CVs with options to view, edit, or delete
  */
 
-function Dashboard() {
+export default function Dashboard() {
   const navigate = useNavigate();
   const [cvs, setCvs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -138,20 +138,16 @@ function Dashboard() {
 
   if (loading) {
     return (
-      <div className="dashboard-container">
-        <div
-          className="d-flex justify-content-center align-items-center"
-          style={{ minHeight: "400px" }}
-        >
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="flex justify-center items-center min-h-[400px]">
           <div className="text-center">
             <div
-              className="spinner-border text-primary"
+              className="inline-block w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"
               role="status"
-              style={{ width: "3rem", height: "3rem" }}
             >
-              <span className="visually-hidden">Loading...</span>
+              <span className="sr-only">Loading...</span>
             </div>
-            <p className="mt-3 text-muted">Loading your CVs...</p>
+            <p className="mt-3 text-gray-600">Loading your CVs...</p>
           </div>
         </div>
       </div>
@@ -159,29 +155,36 @@ function Dashboard() {
   }
 
   return (
-    <div className="dashboard-container">
-      <header className="dashboard-header">
-        <h1>My CVs</h1>
-        <div className="header-actions">
+    <div className="min-h-screen bg-gray-50 p-8">
+      <header className="mb-8 flex justify-between items-center">
+        <h1 className="text-4xl font-bold text-gray-800">My CVs</h1>
+        <div className="flex gap-3">
           <button
-            className="btn btn-primary"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
             onClick={() => navigate("/upload-cv")}
           >
             + Create New CV
           </button>
-          <button className="btn btn-secondary" onClick={handleSignOut}>
+          <button
+            className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+            onClick={handleSignOut}
+          >
             Sign Out
           </button>
         </div>
       </header>
 
-      <div className="dashboard-content">
+      <div className="">
         {!loading && cvs.length === 0 && (
-          <div className="empty-state">
-            <h2>No CVs yet</h2>
-            <p>Create your first AI-generated CV by uploading a document</p>
+          <div className="text-center py-16 bg-white rounded-lg shadow-md">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-2">
+              No CVs yet
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Create your first AI-generated CV by uploading a document
+            </p>
             <button
-              className="btn btn-primary"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
               onClick={() => navigate("/upload-cv")}
             >
               Upload Your First CV
@@ -190,63 +193,14 @@ function Dashboard() {
         )}
 
         {cvs.length > 0 && (
-          <div className="cv-grid">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {cvs.map((cv) => (
-              <div key={cv.id} className="cv-card">
-                <div className="cv-card-header">
-                  <h3>{cv.generated_cv?.name || "Untitled CV"}</h3>
-                  <span className="cv-date">{formatDate(cv.createdAt)}</span>
-                </div>
-                <div className="cv-card-body">
-                  <p>
-                    <strong>Email:</strong> {cv.generated_cv?.email || "N/A"}
-                  </p>
-                  <p>
-                    <strong>Phone:</strong> {cv.generated_cv?.phone || "N/A"}
-                  </p>
-                  {cv.generated_cv?.skills && (
-                    <div className="skills-preview">
-                      <strong>Skills:</strong>
-                      <div className="skill-tags">
-                        {cv.generated_cv.skills
-                          .slice(0, 3)
-                          .map((skill, idx) => (
-                            <span key={idx} className="skill-tag">
-                              {skill}
-                            </span>
-                          ))}
-                        {cv.generated_cv.skills.length > 3 && (
-                          <span className="skill-tag">
-                            +{cv.generated_cv.skills.length - 3}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="cv-card-footer">
-                  <a
-                    href={cv.original_file_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-link"
-                  >
-                    View Original
-                  </a>
-                  <button
-                    className="btn btn-primary"
-                    onClick={() => navigate(`/cv/${cv.id}`)}
-                  >
-                    View Details
-                  </button>
-                  <button
-                    className="btn btn-danger"
-                    onClick={() => handleDeleteCV(cv.id)}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
+              <CVCard
+                key={cv.id}
+                cv={cv}
+                handleDeleteCV={handleDeleteCV}
+                formatDate={formatDate}
+              />
             ))}
           </div>
         )}
@@ -254,5 +208,3 @@ function Dashboard() {
     </div>
   );
 }
-
-export default Dashboard;

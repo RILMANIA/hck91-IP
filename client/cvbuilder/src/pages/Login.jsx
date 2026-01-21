@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { supabase } from "../helpers/supabaseClient";
-import "./Login.css";
 
 /**
  * WHAT: Login page with Google Sign-In using Supabase Auth
@@ -8,7 +7,7 @@ import "./Login.css";
  * OUTPUT: Redirects to Google OAuth flow, then to dashboard on success
  */
 
-function Login() {
+export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -37,23 +36,31 @@ function Login() {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <h1>Smart CV Assistant</h1>
-        <p className="subtitle">Generate professional CVs with AI</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+        <h1 className="text-4xl font-bold text-gray-800 text-center mb-2">
+          Smart CV Assistant
+        </h1>
+        <p className="text-gray-600 text-center mb-6">
+          Generate professional CVs with AI
+        </p>
 
-        {error && <div className="error-message">{error}</div>}
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
 
         <button
           onClick={handleGoogleSignIn}
           disabled={loading}
-          className="google-signin-btn"
+          className="w-full bg-white hover:bg-gray-50 text-gray-800 font-semibold py-3 px-4 border border-gray-300 rounded-lg shadow flex items-center justify-center gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
             "Signing in..."
           ) : (
             <>
-              <svg className="google-icon" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -76,18 +83,30 @@ function Login() {
           )}
         </button>
 
-        <div className="features">
-          <h3>Features:</h3>
-          <ul>
-            <li>Upload PDF or Word documents</li>
-            <li>AI-powered CV generation</li>
-            <li>Professional formatting</li>
-            <li>Secure cloud storage</li>
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">
+            Features:
+          </h3>
+          <ul className="space-y-2 text-gray-600">
+            <li className="flex items-start">
+              <span className="text-blue-600 mr-2">✓</span>
+              <span>Upload PDF or Word documents</span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-blue-600 mr-2">✓</span>
+              <span>AI-powered CV generation</span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-blue-600 mr-2">✓</span>
+              <span>Professional formatting</span>
+            </li>
+            <li className="flex items-start">
+              <span className="text-blue-600 mr-2">✓</span>
+              <span>Secure cloud storage</span>
+            </li>
           </ul>
         </div>
       </div>
     </div>
   );
 }
-
-export default Login;
