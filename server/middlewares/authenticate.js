@@ -1,4 +1,5 @@
 const { verifyToken } = require("../helpers/jwt");
+const { User } = require("../models");
 
 const authenticate = async (req, res, next) => {
   try {
@@ -8,18 +9,20 @@ const authenticate = async (req, res, next) => {
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       throw {
         name: "Unauthorized",
-        message: "No authorization token provided",
+        message: "Invalid token",
       };
     }
 
-    const token = authHeader.substring(7);
+    const token = authHeader.split(" ")[1];
 
     const decoded = verifyToken(token);
 
-    req.user = {
-      id: decoded.id,
-      email: decoded.email,
-    };
+    const user = await User.findByPk(decoded.id);
+    if (!user) {
+      throw { name: "LoginError", message: "Invalid token" };
+    }
+
+    req.user = user;
 
     next();
   } catch (error) {

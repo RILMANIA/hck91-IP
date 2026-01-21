@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Navigate, useNavigate, Link } from "react-router-dom";
 import { cvApi } from "../helpers/http-client";
 import Swal from "sweetalert2";
 
@@ -11,58 +11,62 @@ import Swal from "sweetalert2";
 
 export default function Login() {
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!formData.email || !formData.password) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "Please fill in all fields",
-      });
-      return;
-    }
+  async function handleLogin(event) {
+    event.preventDefault();
 
     try {
       setLoading(true);
+      if (localStorage.getItem("access_token")) {
+        navigate("/dashboard");
+        return;
+      }
 
-      const { data } = await cvApi.post("/login", formData);
+      const response = await cvApi.post("/login", {
+        email,
+        password,
+      });
 
-      // Store token in localStorage
-      localStorage.setItem("access_token", data.access_token);
+      console.log(response.data, "<<< Login");
 
-      Swal.fire({
+      localStorage.setItem("access_token", response.data.access_token);
+
+      await Swal.fire({
         icon: "success",
         title: "Success!",
         text: "Login successful",
-        timer: 1500,
         showConfirmButton: false,
+        timer: 1500,
       });
 
       navigate("/dashboard");
     } catch (error) {
-      Swal.fire({
-        icon: "error",
-        title: "Login Failed",
-        text: error.response?.data?.message || "Invalid email or password",
-      });
+      console.log(error.response, "<<< Login");
+
+      if (error.response) {
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text: error.response.data.message,
+        });
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "Error!",
+          text: "There was an error",
+        });
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  if (localStorage.getItem("access_token")) {
+    return <Navigate to="/dashboard" />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -74,7 +78,7 @@ export default function Login() {
           Generate professional CVs with AI
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label
               htmlFor="email"
@@ -86,11 +90,10 @@ export default function Login() {
               type="email"
               id="email"
               name="email"
-              value={formData.email}
-              onChange={handleChange}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-              required
             />
           </div>
 
@@ -105,11 +108,10 @@ export default function Login() {
               type="password"
               id="password"
               name="password"
-              value={formData.password}
-              onChange={handleChange}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
-              required
             />
           </div>
 

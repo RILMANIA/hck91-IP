@@ -1,10 +1,4 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -18,69 +12,20 @@ import "./App.css";
  */
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Check if user has a token
-    const token = localStorage.getItem("access_token");
-    setIsAuthenticated(!!token);
-    setLoading(false);
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="loading-container">
-        <p>Loading...</p>
-      </div>
-    );
-  }
-
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
-        {/* Login Page */}
-        <Route
-          path="/login"
-          element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />}
-        />
+        {/* Add your routes here */}
+        <Route path="/" element={<Navigate to="/login" />} />
 
-        {/* Register Page */}
-        <Route
-          path="/register"
-          element={
-            !isAuthenticated ? <Register /> : <Navigate to="/dashboard" />
-          }
-        />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-        {/* Dashboard Page - View all user CVs */}
-        <Route
-          path="/dashboard"
-          element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />}
-        />
-
-        {/* Upload CV Page - Upload and generate new CV */}
-        <Route
-          path="/upload-cv"
-          element={isAuthenticated ? <UploadCV /> : <Navigate to="/login" />}
-        />
-
-        {/* View/Edit CV Page - View and edit existing CV */}
-        <Route
-          path="/cv/:id"
-          element={isAuthenticated ? <UploadCV /> : <Navigate to="/login" />}
-        />
-
-        {/* Redirect root to dashboard if logged in, otherwise login */}
-        <Route
-          path="/"
-          element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} />}
-        />
-
-        {/* 404 - Not Found */}
-        <Route path="*" element={<div>404 - Page Not Found</div>} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/upload-cv" element={<UploadCV />} />
+        <Route path="/cv/:id" element={<UploadCV />} />
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }
 

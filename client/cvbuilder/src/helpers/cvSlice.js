@@ -28,7 +28,7 @@ export const uploadCVAsync = createAsyncThunk(
         },
       });
 
-      return response.data.data;
+      return response.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message || error.message || "Failed to upload CV",

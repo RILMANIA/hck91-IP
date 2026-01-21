@@ -6,17 +6,24 @@ const { extractTextFromFile } = require("../helpers/textExtractor");
 module.exports = class CvController {
   static async uploadCV(req, res, next) {
     try {
+      console.log("<<< req.file in uploadCV");
       if (!req.file) {
         throw { name: "BadRequest", message: "No file uploaded" };
       }
 
       const userId = req.user.id;
 
+      console.log("Uploading file to Cloudinary...");
+
       // Upload original file to Cloudinary
       const { secure_url } = await uploadToCloudinary(req.file);
 
+      console.log("File uploaded to Cloudinary");
+
       // Extract text from the uploaded file
       const rawText = await extractTextFromFile(req.file);
+
+      console.log("Extracted text from file");
 
       // Generate structured CV using Gemini AI
       const generatedCV = await generateCVFromText(rawText);
@@ -27,6 +34,8 @@ module.exports = class CvController {
         original_file_url: secure_url,
         generated_cv: generatedCV,
       });
+
+      console.log("CV record created in database");
 
       res.status(201).json(cvRecord);
     } catch (error) {
