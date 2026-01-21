@@ -1,5 +1,8 @@
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();
+}
+
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-require("dotenv").config();
 
 /**
  * WHAT: Initializes Google Gemini AI client with API key

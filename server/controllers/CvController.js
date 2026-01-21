@@ -67,4 +67,48 @@ module.exports = class CvController {
       next(error);
     }
   }
+
+  static async updateCV(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { generated_cv } = req.body;
+
+      if (!generated_cv) {
+        throw { name: "BadRequest", message: "No CV content provided" };
+      }
+
+      const cv = await Cv.findByPk(id);
+
+      if (!cv) {
+        throw { name: "NotFound", message: "CV not found" };
+      }
+
+      // Update the CV content
+      await cv.update({ generated_cv });
+
+      res.status(200).json(cv);
+    } catch (error) {
+      console.log(error, "<<< error in updateCV");
+      next(error);
+    }
+  }
+
+  static async deleteCV(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      const cv = await Cv.findByPk(id);
+
+      if (!cv) {
+        throw { name: "NotFound", message: "CV not found" };
+      }
+
+      await cv.destroy();
+
+      res.status(200).json({ message: "CV deleted successfully" });
+    } catch (error) {
+      console.log(error, "<<< error in deleteCV");
+      next(error);
+    }
+  }
 };

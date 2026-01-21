@@ -8,10 +8,11 @@ const cors = require("cors");
 
 app.use(cors());
 
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 3000;
 
 const authentication = require("./middlewares/authenticate");
 const errorHandler = require("./middlewares/errorHandler");
+const matchUser = require("./middlewares/matchUser");
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
@@ -42,9 +43,11 @@ app.use(authentication);
 // Endpoints for CV management
 const upload = require("./middlewares/uploadMiddleware");
 
-app.post("/api/cvs/upload", upload.single("file"), CvController.uploadCV);
-app.get("/api/cvs", CvController.getUserCVs);
-app.get("/api/cvs/:id", CvController.getCVById);
+app.post("/cvs/upload", upload.single("file"), CvController.uploadCV);
+app.get("/cvs", CvController.getUserCVs);
+app.get("/cvs/:id", CvController.getCVById);
+app.put("/cvs/:id", matchUser, CvController.updateCV);
+app.delete("/cvs/:id", matchUser, CvController.deleteCV);
 
 // Apply error handling middleware
 app.use(errorHandler);
