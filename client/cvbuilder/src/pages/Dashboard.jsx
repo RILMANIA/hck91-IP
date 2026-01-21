@@ -2,12 +2,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { cvApi } from "../helpers/http-client";
-import { supabase } from "../helpers/supabaseClient";
 import CVCard from "../components/CVCard";
 
 /**
  * WHAT: Dashboard page displaying user's CV history and navigation
- * INPUT: None (uses authenticated session from Supabase)
+ * INPUT: None (uses authenticated session)
  * OUTPUT: Renders list of user's CVs with options to view, edit, or delete
  */
 
@@ -19,20 +18,14 @@ export default function Dashboard() {
   const fetchCVs = async () => {
     try {
       setLoading(true);
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const token = localStorage.getItem("access_token");
 
-      if (!session) {
+      if (!token) {
         navigate("/login");
         return;
       }
 
-      const { data } = await cvApi.get(`/cvs`, {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
+      const { data } = await cvApi.get(`/cvs`);
 
       console.log(data, "<<< data fetchCVs Dashboard");
       setCvs(data);
@@ -73,20 +66,14 @@ export default function Dashboard() {
         return;
       }
 
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const token = localStorage.getItem("access_token");
 
-      if (!session) {
+      if (!token) {
         navigate("/login");
         return;
       }
 
-      await cvApi.delete(`/cvs/${cvId}`, {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
+      await cvApi.delete(`/cvs/${cvId}`);
 
       Swal.fire("Deleted!", "Your CV has been deleted.", "success");
       await fetchCVs();
@@ -118,8 +105,8 @@ export default function Dashboard() {
    * INPUT: None (button click)
    * OUTPUT: Clears session and navigates to login page
    */
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
+  const handleSignOut = () => {
+    localStorage.removeItem("access_token");
     navigate("/login");
   };
 

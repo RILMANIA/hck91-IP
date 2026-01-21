@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import { cvApi } from "../helpers/http-client";
-import { supabase } from "../helpers/supabaseClient";
 import UploadCVComponent from "../components/UploadCV";
 
 /**
@@ -21,20 +20,14 @@ export default function UploadCV() {
   const fetchCVById = async () => {
     try {
       setLoading(true);
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const token = localStorage.getItem("access_token");
 
-      if (!session) {
+      if (!token) {
         navigate("/login");
         return;
       }
 
-      const { data } = await cvApi.get(`/cvs/${id}`, {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
+      const { data } = await cvApi.get(`/cvs/${id}`);
 
       console.log(data, "<<< data fetchCVById UploadCV");
       setCv(data);
@@ -62,24 +55,14 @@ export default function UploadCV() {
 
   const handleUpdateCV = async (updatedCVData) => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const token = localStorage.getItem("access_token");
 
-      if (!session) {
+      if (!token) {
         navigate("/login");
         return;
       }
 
-      await cvApi.put(
-        `/cvs/${id}`,
-        { generated_cv: updatedCVData },
-        {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        },
-      );
+      await cvApi.put(`/cvs/${id}`, { generated_cv: updatedCVData });
 
       Swal.fire({
         icon: "success",

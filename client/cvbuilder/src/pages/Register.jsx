@@ -4,12 +4,12 @@ import { cvApi } from "../helpers/http-client";
 import Swal from "sweetalert2";
 
 /**
- * WHAT: Login page with email/password authentication
+ * WHAT: Register page for creating new user accounts
  * INPUT: Email and password from form
- * OUTPUT: Authenticates user and redirects to dashboard on success
+ * OUTPUT: Creates new user account and redirects to login
  */
 
-export default function Login() {
+export default function Register() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -39,25 +39,24 @@ export default function Login() {
     try {
       setLoading(true);
 
-      const { data } = await cvApi.post("/login", formData);
-
-      // Store token in localStorage
-      localStorage.setItem("access_token", data.access_token);
+      await cvApi.post("/register", formData);
 
       Swal.fire({
         icon: "success",
         title: "Success!",
-        text: "Login successful",
-        timer: 1500,
+        text: "Account created successfully. Please login.",
+        timer: 2000,
         showConfirmButton: false,
       });
 
-      navigate("/dashboard");
+      navigate("/login");
     } catch (error) {
       Swal.fire({
         icon: "error",
-        title: "Login Failed",
-        text: error.response?.data?.message || "Invalid email or password",
+        title: "Registration Failed",
+        text:
+          error.response?.data?.message ||
+          "An error occurred during registration",
       });
     } finally {
       setLoading(false);
@@ -68,10 +67,10 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
         <h1 className="text-4xl font-bold text-gray-800 text-center mb-2">
-          Smart CV Assistant
+          Create Account
         </h1>
         <p className="text-gray-600 text-center mb-6">
-          Generate professional CVs with AI
+          Join Smart CV Assistant
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -118,18 +117,18 @@ export default function Login() {
             disabled={loading}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg shadow transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Signing in..." : "Login"}
+            {loading ? "Creating Account..." : "Register"}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-gray-600">
-            Don't have an account?{" "}
+            Already have an account?{" "}
             <Link
-              to="/register"
+              to="/login"
               className="text-blue-600 hover:text-blue-700 font-semibold"
             >
-              Register here
+              Login here
             </Link>
           </p>
         </div>

@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { cvApi } from "./http-client";
-import { supabase } from "./supabaseClient";
 
 /**
  * WHAT: Async thunk to upload CV file to backend and process with AI
@@ -11,12 +10,10 @@ export const uploadCVAsync = createAsyncThunk(
   "cv/uploadCV",
   async (file, { rejectWithValue }) => {
     try {
-      // Get current session token from Supabase
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      // Get current session token from localStorage
+      const token = localStorage.getItem("access_token");
 
-      if (!session) {
+      if (!token) {
         throw new Error("User not authenticated");
       }
 
@@ -28,7 +25,6 @@ export const uploadCVAsync = createAsyncThunk(
       const response = await cvApi.post(`/cvs/upload`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${session.access_token}`,
         },
       });
 
@@ -50,19 +46,13 @@ export const fetchUserCVsAsync = createAsyncThunk(
   "cv/fetchUserCVs",
   async (_, { rejectWithValue }) => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const token = localStorage.getItem("access_token");
 
-      if (!session) {
+      if (!token) {
         throw new Error("User not authenticated");
       }
 
-      const response = await cvApi.get(`/cvs`, {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
+      const response = await cvApi.get(`/cvs`);
 
       return response.data.data;
     } catch (error) {
