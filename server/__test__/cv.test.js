@@ -431,3 +431,151 @@ describe("DELETE /cvs/:id endpoint", () => {
     expect(response.body).toHaveProperty("message");
   });
 });
+
+describe("POST /cvs/upload endpoint", () => {
+  let userToken;
+
+  beforeAll(async () => {
+    const loginRes = await request(app).post("/login").send({
+      email: "user1@example.com",
+      password: "password123",
+    });
+    userToken = loginRes.body.access_token;
+
+    // Setup mocks
+    uploadToCloudinary.mockResolvedValue({
+      secure_url: "https://cloudinary.com/uploaded-cv.pdf",
+    });
+
+    extractTextFromFile.mockResolvedValue(
+      "John Doe\njohn@example.com\n+1234567890\n\nEducation:\nBachelor of Computer Science\n\nExperience:\nSoftware Developer at Tech Corp",
+    );
+
+    generateCVFromText.mockResolvedValue({
+      name: "John Doe",
+      email: "john@example.com",
+      phone: "+1234567890",
+      education: [
+        {
+          institution: "University",
+          degree: "Bachelor of Computer Science",
+          year: "2020",
+        },
+      ],
+      experience: [
+        {
+          company: "Tech Corp",
+          position: "Software Developer",
+          duration: "2020-2023",
+          description: "Developed web applications",
+        },
+      ],
+      skills: ["JavaScript", "Node.js", "React"],
+    });
+  });
+
+  test("should upload CV successfully", async () => {
+    const response = await request(app)
+      .post("/cvs/upload")
+      .set("Authorization", `Bearer ${userToken}`)
+      .attach("file", Buffer.from("%PDF-1.4 test content"), "test-cv.pdf");
+
+    expect(response.status).toBe(201);
+    expect(response.body).toHaveProperty("id");
+    expect(response.body).toHaveProperty("original_file_url");
+    expect(response.body).toHaveProperty("generated_cv");
+    expect(uploadToCloudinary).toHaveBeenCalled();
+    expect(extractTextFromFile).toHaveBeenCalled();
+    expect(generateCVFromText).toHaveBeenCalled();
+  });
+
+  test("should fail when no file is uploaded", async () => {
+    const response = await request(app)
+      .post("/cvs/upload")
+      .set("Authorization", `Bearer ${userToken}`);
+
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty("message");
+  });
+
+  test("should fail if not authenticated", async () => {
+    const response = await request(app)
+      .post("/cvs/upload")
+      .attach("file", Buffer.from("test"), "test.pdf");
+
+    expect(response.status).toBe(401);
+  });
+
+  test("should handle cloudinary upload errors", async () => {
+    uploadToCloudinary.mockRejectedValueOnce(
+      new Error("Cloudinary upload failed"),
+    );
+
+    const response = await request(app)
+      .post("/cvs/upload")
+      .set("Authorization", `Bearer ${userToken}`)
+      .attach("file", Buffer.from("test"), "test.pdf");
+
+    expect(response.status).toBe(500);
+  });
+
+  test("should handle text extraction errors", async () => {
+    uploadToCloudinary.mockResolvedValueOnce({
+      secure_url: "https://cloudinary.com/test.pdf",
+    });
+    extractTextFromFile.mockRejectedValueOnce(
+      new Error("Text extraction failed"),
+    );
+
+    const response = await request(app)
+      .post("/cvs/upload")
+      .set("Authorization", `Bearer ${userToken}`)
+      .attach("file", Buffer.from("test"), "test.pdf");
+
+    expect(response.status).toBe(500);
+  });
+
+  test("should handle Gemini AI errors", async () => {
+    uploadToCloudinary.mockResolvedValueOnce({
+      secure_url: "https://cloudinary.com/test.pdf",
+    });
+    extractTextFromFile.mockResolvedValueOnce("Test CV text");
+    generateCVFromText.mockRejectedValueOnce(
+      new Error("Gemini generation failed"),
+    );
+
+    const response = await request(app)
+      .post("/cvs/upload")
+      .set("Authorization", `Bearer ${userToken}`)
+      .attach("file", Buffer.from("test"), "test.pdf");
+
+    expect(response.status).toBe(500);
+  });
+});
+
+describe("PUT /cvs/:id - Missing CV content", () => {
+  let userToken;
+  let cvId;
+
+  beforeAll(async () => {
+    const loginRes = await request(app).post("/login").send({
+      email: "user1@example.com",
+      password: "password123",
+    });
+    userToken = loginRes.body.access_token;
+
+    const users = await User.findAll();
+    const cv = await Cv.findOne({ where: { userId: users[0].id } });
+    cvId = cv.id;
+  });
+
+  test("should fail when generated_cv is not provided", async () => {
+    const response = await request(app)
+      .put(`/cvs/${cvId}`)
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({});
+
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty("message", "No CV content provided");
+  });
+});
