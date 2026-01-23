@@ -84,7 +84,7 @@ const cvSlice = createSlice({
   },
   reducers: {
     /**
-     * WHAT: Sets the generated CV data in state
+     * WHAT: Synchronously redux function sets the generated CV data in state
      * INPUT: action.payload - CV object from backend
      * OUTPUT: Updates generatedCV and uploadedFileUrl in state
      */
@@ -94,7 +94,7 @@ const cvSlice = createSlice({
     },
 
     /**
-     * WHAT: Clears CV data from state
+     * WHAT: Synchronously redux function clears CV data from state
      * INPUT: None
      * OUTPUT: Resets CV-related state to initial values
      */
@@ -105,7 +105,7 @@ const cvSlice = createSlice({
     },
 
     /**
-     * WHAT: Clears error message from state
+     * WHAT: Synchronously redux function clears error message from state
      * INPUT: None
      * OUTPUT: Sets error to null
      */
