@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export const cvApi = axios.create({
-  baseURL: "https://hck91.emirhaikal.web.id",
+  baseURL: "https:/hck91.emirhaikal.web.id",
 });
 
 // Add token to all requests automatically
