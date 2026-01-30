@@ -11,8 +11,8 @@ import Swal from "sweetalert2";
 
 export default function Register() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("user1@mail.com");
+  const [password, setPassword] = useState("user1");
   const [loading, setLoading] = useState(false);
 
   async function handleRegister(event) {

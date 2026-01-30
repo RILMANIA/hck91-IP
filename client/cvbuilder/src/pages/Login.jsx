@@ -25,6 +25,8 @@ export default function Login() {
         return;
       }
 
+      // console.log(localStorage.removeItem("access_token"), "<<< Token");
+
       const response = await cvApi.post("/login", {
         email,
         password,
